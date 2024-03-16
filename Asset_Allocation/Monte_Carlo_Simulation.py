@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import time
 from multiprocessing import Pool, cpu_count  
 
+# TODO: Multiprocessing of Monte Carlo Simulation
+
 def portfolio_simulation(num_simulations: int, r_f: float, assets: list, start: str, end: str) -> list:
     start_t = time.perf_counter()
     data = yf.download(assets, start=start, end=end, interval="1d")["Adj Close"]
