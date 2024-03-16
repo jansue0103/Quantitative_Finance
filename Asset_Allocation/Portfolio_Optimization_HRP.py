@@ -43,7 +43,7 @@ def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str):
     ordered_indices = np.argsort(np.abs(loadings[0]))[::-1]
     
     sns.heatmap(data_log_returns.corr())
-
+    # Figure out if the clustering from HCA is used in the quasi diagonalization
     plt.show()
     pass 
 
