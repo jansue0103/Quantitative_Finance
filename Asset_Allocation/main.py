@@ -5,7 +5,7 @@ import yfinance as yf
 
 if __name__ == '__main__':
 
-    assets = ["AAPL", "SPY", "HD", "QQQ", "^FTSE", "GC=F", "CL=F", "^N225", "BTC-USD", "TSLA", "^TNX", "^TYX", "^FVX", "TLT"]
+    assets = ["AAPL", "SPY", "HD", "QQQ", "^FTSE", "GC=F", "CL=F", "^N225", "BTC-USD", "TSLA", "PEP", "AMD", "SHY", "TLT", "OXY"]
     start="2021-03-16"
     end="2024-03-16"
     
