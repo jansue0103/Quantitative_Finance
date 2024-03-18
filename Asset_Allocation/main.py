@@ -4,16 +4,21 @@ from Portfolio_Optimization_HRP import hrp
 from misc_functions import get_stock_tickers
 import yfinance as yf
 import random
-
+from scipy.cluster.hierarchy import linkage, dendrogram
+from scipy.spatial.distance import pdist, squareform
+import pandas as pd
+import numpy as np
 if __name__ == '__main__':
 
-    assets = ["AAPL", "SPY", "HD", "QQQ", "^FTSE", "GC=F", "CL=F", "^N225", "BTC-USD", "TSLA", "PEP", "AMD", "SHY", "TLT", "OXY", "NVDA", "ABNB"]
+    assets = ["AAPL", "SPY", "HD", "QQQ", "^FTSE", "GC=F", "CL=F", "^N225", "BTC-USD", "TSLA", "PEP", "AMD", "SHY", "TLT", "KO", "NVDA", "ABNB", "ZS=F"]
     start="2015-03-16"
     end="2024-03-16"
     
-    hrp(assets, start, end, "complete")
+    data = hrp(assets, start, end, "complete")
     #result_mc = portfolio_simulation(300, 0.0, assets, start=start, end=end)
     #result_opt = portfolio_optimization(assets, start, end, risk_free_rate=0.0)
-
+    
+ 
+    
 # Read about quadratic and other optimization methods
 # Implement other portfolio construction methods such as risk parity and hierarchical risk parity by de Lopez

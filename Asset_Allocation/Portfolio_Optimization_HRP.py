@@ -7,40 +7,65 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.spatial.distance import pdist, squareform
 from sklearn.decomposition import PCA
 from misc_functions import impute_nan_values
+from itertools import groupby
 
-
-def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str):
+def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str): #TODO: define output type
     data_raw = yf.download(assets, start=start, end=end)["Adj Close"]
 
     data_imputed = data_raw.apply(impute_nan_values)
-
+    no_assets = len(assets)
     # Transform percentage returns into log returns
-    data_log_returns = np.log(1 + data_imputed.pct_change())[1:]
-    #data_pct_change = data_raw.pct_change()[1:]
+    data_log_returns = pd.DataFrame(np.log(1 + data_imputed.pct_change())[1:])
 
-    # Calculate distance matrix from log return correlation matrix
-    distances = pdist(data_log_returns.corr(), metric="euclidean")
-    clusters = linkage(y=distances, method=linkage_method, metric="euclidean")
-    #dend = dendrogram(Z=clusters, labels=data_imputed.columns)
+    corr_matrix = data_log_returns.corr()
+    cov_matrix = data_log_returns.cov()
+    # Transform correlation matrix into correlation distance matrix
+    # Distance formula used in "BUILDING DIVERSIFIED PORTFOLIOS THAT OUTPERFORM OUT-OF-SAMPLE" by Marcos Lopez de Prado (2016)
+    distance_matrix = corr_matrix.apply(lambda x: np.sqrt(0.5 * (1 - x)))
+
+    # Calculate condensed pairwise distance matrix
+    pairwise_distance = pdist(distance_matrix, metric="euclidean")
+
+    clusters = linkage(y=pairwise_distance, method=linkage_method, metric="euclidean")
+    dend = dendrogram(Z=clusters, labels=data_log_returns.columns)
     #plt.figure()
 
-    cov_matrix = data_log_returns.cov()
-    pca = PCA()
-    pca.fit(cov_matrix)
-    loadings = pca.components_
-    ordered_indices = np.argsort(np.abs(loadings[0]))[::-1]
+    # pca = PCA()
+    # pca.fit(corr_matrix)
+    # loadings = pca.components_
+    # ordered_indices = np.argsort(np.abs(loadings[0]))[::-1]
+    # quasi_diag_columns = corr_matrix.loc[:, dend["ivl"]]
+    # quasi_diag = quasi_diag_columns.loc[dend["ivl"]]
 
-    quasi_diag_columns = cov_matrix.iloc[:, ordered_indices]
-    quasi_diag = quasi_diag_columns.iloc[ordered_indices]
+    # Creates a tuple with asset ticker, order of assets in dendogram, and cluster family
+    dendogram_tuple = list(zip(dend["ivl"], dend["leaves"], dend["leaves_color_list"]))
+    quasi_idx_height = []
 
-
-
-    sns.heatmap(quasi_diag)
-    plt.figure()
+    # Adds the merged hight to each asset tuple
+    for row in clusters:
+        if(row[0] <= no_assets or row[1] <= no_assets):
+            for item in dendogram_tuple:
+                if(item[1] == row[0]):
+                    quasi_idx_height.append(tuple(list(item) + [row[2]]))
+                if(item[1] == row[1]):
+                    quasi_idx_height.append(tuple(list(item) + [row[2]]))
+  
+    sorted_clusters = {}
+    quasi_diag = {}
+    for key, group in groupby(sorted(quasi_idx_height, key=lambda x:x[2]), key=lambda x: x[2]):
+        sorted_clusters[key] = list(group)
+    
+    sorted_clusters = sorted(sorted_clusters.items(), key=lambda x: max([t[3] for t in x[1]]), reverse=True)
+    
+    # TODO: Sorting based
+    print(sorted_clusters)
+  
+    # sns.heatmap(quasi_diag)
+    # plt.figure()
     sns.heatmap(cov_matrix)
-    # Figure out if the clustering from HCA is used in the quasi diagonalization
+    
     plt.show()
-    pass 
+    pass
 
 
 
