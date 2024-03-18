@@ -28,14 +28,7 @@ def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str): #TODO:
 
     clusters = linkage(y=pairwise_distance, method=linkage_method, metric="euclidean")
     dend = dendrogram(Z=clusters, labels=data_log_returns.columns)
-    #plt.figure()
-
-    # pca = PCA()
-    # pca.fit(corr_matrix)
-    # loadings = pca.components_
-    # ordered_indices = np.argsort(np.abs(loadings[0]))[::-1]
-    # quasi_diag_columns = corr_matrix.loc[:, dend["ivl"]]
-    # quasi_diag = quasi_diag_columns.loc[dend["ivl"]]
+    plt.figure()
 
     # Creates a tuple with asset ticker, order of assets in dendogram, and cluster family
     dendogram_tuple = list(zip(dend["ivl"], dend["leaves"], dend["leaves_color_list"]))
@@ -50,26 +43,32 @@ def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str): #TODO:
                 if(item[1] == row[1]):
                     quasi_idx_height.append(tuple(list(item) + [row[2]]))
   
-    sorted_clusters = {}
-    quasi_diag = {}
-    for key, group in groupby(sorted(quasi_idx_height, key=lambda x:x[2]), key=lambda x: x[2]):
-        sorted_clusters[key] = list(group)
+    quasi_diag = []
+    temp = sorted(quasi_idx_height, key=lambda x: x[2], reverse=True)###
+    prev_cluster = None
+    temp2 = []
+    for item in temp:
+        if (prev_cluster is not None and prev_cluster != item[2]):
+            temp2 = sorted(temp2, key=lambda x: x[3], reverse=False)
+            quasi_diag.append(temp2)
+            temp2 = []
+        temp2.append(item)
+        prev_cluster = item[2]
+
+    temp2 = sorted(temp2, key=lambda x: x[3], reverse=False)
+    quasi_diag.append(temp2)
+
+    result = [t[0] for sub in quasi_diag for t in sub]
+    #result = result[::-1]
+
+    quasi_diag_columns = corr_matrix.loc[:, result]
+    quasi_diag_cov = quasi_diag_columns.loc[result]
+
+    print(quasi_diag_cov)
+    sns.heatmap(quasi_diag_cov)
+    #plt.figure()
+    #sns.heatmap(cov_matrix)
     
-    sorted_clusters = sorted(sorted_clusters.items(), key=lambda x: max([t[3] for t in x[1]]), reverse=True)
-    
-    # TODO: Sorting based
-    print(sorted_clusters)
-  
-    # sns.heatmap(quasi_diag)
-    # plt.figure()
-    sns.heatmap(cov_matrix)
-    
+    "TODO: Some, but not all variances are placed correctly along the diagonal, reversed=True vs. False. Algorithm needs to be adapted"
     plt.show()
     pass
-
-
-
-
-
-# distance_matrix = squareform(distances)
-    # distance_df = pd.DataFrame(distance_matrix, columns=data_raw.columns, index=data_raw.columns)
