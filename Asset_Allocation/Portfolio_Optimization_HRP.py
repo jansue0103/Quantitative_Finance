@@ -26,50 +26,52 @@ def hrp(assets: list, start: str, end: str, linkage_method: str):  # TODO: defin
 
     # Calculate condensed pairwise distance matrix
     pairwise_distance = pdist(distance_matrix, metric="euclidean")
-
-    clusters = linkage(y=pairwise_distance, method=linkage_method, metric="euclidean")
+    full_distances = squareform(pairwise_distance)
+    clusters = linkage(y=np.array(corr_matrix), method=linkage_method, metric="euclidean")
     dend = dendrogram(Z=clusters, labels=data_log_returns.columns)
     plt.figure()
 
-    # Creates a tuple with asset ticker, order of assets in dendogram, and cluster family
-    dendogram_tuple = list(zip(dend["ivl"], dend["leaves"], dend["leaves_color_list"]))
-    quasi_idx_height = []
+    idx = dend["ivl"]
+    quasi_diag_matrix = corr_matrix.loc[:, idx]
+    quasi_diag_matrix = quasi_diag_matrix.loc[idx, :]
 
-    # Adds the merged hight to each asset tuple
-    for row in clusters:
-        if (row[0] <= no_assets or row[1] <= no_assets):
-            for item in dendogram_tuple:
-                if (item[1] == row[0]):
-                    quasi_idx_height.append(tuple(list(item) + [row[2]]))
-                if (item[1] == row[1]):
-                    quasi_idx_height.append(tuple(list(item) + [row[2]]))
-
-    quasi_diag = []
-    temp = sorted(quasi_idx_height, key=lambda x: x[2], reverse=True)  ###
-    prev_cluster = None
-    temp2 = []
-    for item in temp:
-        if prev_cluster is not None and prev_cluster != item[2]:
-            temp2 = sorted(temp2, key=lambda x: x[3], reverse=False)
-            quasi_diag.append(temp2)
-            temp2 = []
-        temp2.append(item)
-        prev_cluster = item[2]
-
-    temp2 = sorted(temp2, key=lambda x: x[3], reverse=False)
-    quasi_diag.append(temp2)
-
-    result = [t[0] for sub in quasi_diag for t in sub]
-    # result = result[::-1]
-
-    quasi_diag_columns = corr_matrix.loc[:, result]
-    quasi_diag_cov = quasi_diag_columns.loc[result]
-
-    print(quasi_diag_cov)
-    sns.heatmap(quasi_diag_cov)
-    # plt.figure()
-    # sns.heatmap(cov_matrix)
-
-    "TODO: Some, but not all variances are placed correctly along the diagonal, reversed=True vs. False. Algorithm needs to be adapted"
+    sns.heatmap(quasi_diag_matrix)
     plt.show()
     pass
+
+
+
+
+
+    # #Creates a tuple with asset ticker, order of assets in dendogram, and cluster family
+    # dendogram_tuple = list(zip(dend["ivl"], dend["leaves"], dend["leaves_color_list"]))
+    # quasi_idx_height = []
+    #
+    # # Adds the merged height to each asset tuple
+    # for row in clusters:
+    #     if row[0] <= no_assets or row[1] <= no_assets:
+    #         for item in dendogram_tuple:
+    #             if item[1] == row[0]:
+    #                 quasi_idx_height.append(tuple(list(item) + [row[2]]))
+    #             if item[1] == row[1]:
+    #                 quasi_idx_height.append(tuple(list(item) + [row[2]]))
+    #
+    # quasi_diag = []
+    # temp = sorted(quasi_idx_height, key=lambda x: x[2], reverse=True)  ###
+    # prev_cluster = None
+    # temp2 = []
+    # for item in temp:
+    #     if prev_cluster is not None and prev_cluster != item[2]:
+    #         temp2 = sorted(temp2, key=lambda x: x[3], reverse=False)
+    #         quasi_diag.append(temp2)
+    #         temp2 = []
+    #     temp2.append(item)
+    #     prev_cluster = item[2]
+    #
+    # temp2 = sorted(temp2, key=lambda x: x[3], reverse=False)
+    # quasi_diag.append(temp2)
+    #
+    # result = [t[0] for sub in quasi_diag for t in sub]
+    #
+    # quasi_diag_columns = corr_matrix.loc[:, result]
+    # quasi_diag_cov = quasi_diag_columns.loc[result]
