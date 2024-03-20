@@ -9,7 +9,8 @@ from sklearn.decomposition import PCA
 from misc_functions import impute_nan_values
 from itertools import groupby
 
-def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str): #TODO: define output type
+
+def hrp(assets: list, start: str, end: str, linkage_method: str):  # TODO: define output type
     data_raw = yf.download(assets, start=start, end=end)["Adj Close"]
 
     data_imputed = data_raw.apply(impute_nan_values)
@@ -36,19 +37,19 @@ def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str): #TODO:
 
     # Adds the merged hight to each asset tuple
     for row in clusters:
-        if(row[0] <= no_assets or row[1] <= no_assets):
+        if (row[0] <= no_assets or row[1] <= no_assets):
             for item in dendogram_tuple:
-                if(item[1] == row[0]):
+                if (item[1] == row[0]):
                     quasi_idx_height.append(tuple(list(item) + [row[2]]))
-                if(item[1] == row[1]):
+                if (item[1] == row[1]):
                     quasi_idx_height.append(tuple(list(item) + [row[2]]))
-  
+
     quasi_diag = []
-    temp = sorted(quasi_idx_height, key=lambda x: x[2], reverse=True)###
+    temp = sorted(quasi_idx_height, key=lambda x: x[2], reverse=True)  ###
     prev_cluster = None
     temp2 = []
     for item in temp:
-        if (prev_cluster is not None and prev_cluster != item[2]):
+        if prev_cluster is not None and prev_cluster != item[2]:
             temp2 = sorted(temp2, key=lambda x: x[3], reverse=False)
             quasi_diag.append(temp2)
             temp2 = []
@@ -59,16 +60,16 @@ def hrp(assets: pd.DataFrame, start: str, end: str, linkage_method: str): #TODO:
     quasi_diag.append(temp2)
 
     result = [t[0] for sub in quasi_diag for t in sub]
-    #result = result[::-1]
+    # result = result[::-1]
 
     quasi_diag_columns = corr_matrix.loc[:, result]
     quasi_diag_cov = quasi_diag_columns.loc[result]
 
     print(quasi_diag_cov)
     sns.heatmap(quasi_diag_cov)
-    #plt.figure()
-    #sns.heatmap(cov_matrix)
-    
+    # plt.figure()
+    # sns.heatmap(cov_matrix)
+
     "TODO: Some, but not all variances are placed correctly along the diagonal, reversed=True vs. False. Algorithm needs to be adapted"
     plt.show()
     pass

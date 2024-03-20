@@ -12,8 +12,8 @@ if __name__ == '__main__':
 
     assets = ["AAPL", "SPY", "HD", "QQQ", "^FTSE", "GC=F", "CL=F", "^N225", "BTC-USD", "TSLA", "PEP", "AMD", "SHY", "TLT", "KO", "NVDA", "ABNB", "ZS=F"]
     assets2 = ["EEM", "EWG", "TIP", "EWJ", "EFA", "IDF", "EWQ", "EWU", "XLU", "XLE", "XLF", "IEF", "XLK", "AAPL", "EPP", "FXI", "VGK", "VPL", "SPY", "TLT", "BND", "QQQ", "DJIA"]
-    start="2015-03-16"
-    end="2024-03-16"
+    start = "2015-03-16"
+    end = "2024-03-16"
     
     data = hrp(assets2, start, end, "complete")
     #result_mc = portfolio_simulation(300, 0.0, assets, start=start, end=end)
