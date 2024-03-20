@@ -10,11 +10,11 @@ from misc_functions import impute_nan_values
 from itertools import groupby
 
 
-def hrp(assets: list, start: str, end: str, linkage_method: str):  # TODO: define output type
+def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:  # TODO: define output type
     data_raw = yf.download(assets, start=start, end=end)["Adj Close"]
 
     data_imputed = data_raw.apply(impute_nan_values)
-    no_assets = len(assets)
+
     # Transform percentage returns into log returns
     data_log_returns = pd.DataFrame(np.log(1 + data_imputed.pct_change())[1:])
 
@@ -26,22 +26,30 @@ def hrp(assets: list, start: str, end: str, linkage_method: str):  # TODO: defin
 
     # Calculate condensed pairwise distance matrix
     pairwise_distance = pdist(distance_matrix, metric="euclidean")
-    full_distances = squareform(pairwise_distance)
-    clusters = linkage(y=np.array(corr_matrix), method=linkage_method, metric="euclidean")
-    dend = dendrogram(Z=clusters, labels=data_log_returns.columns)
+    full_distance = squareform(pairwise_distance)
+
+    # TODO: Check with pairwise and full distance differences
+    # TODO: Test with new asset set with multiple goups very similar assets with a group but dissimilar groups, eg. 5 bonds, 5 stocks, 5 commidites, 5 foreign etfs
+
+    # Creating clusters from distance matrix
+    clusters = linkage(y=full_distance, method=linkage_method, metric="euclidean")
+
+    # Creating dendrogram from clusters
+    dendro = dendrogram(Z=clusters, labels=data_log_returns.columns)
     plt.figure()
 
-    idx = dend["ivl"]
+    # Get reordered asset indexes
+    idx = dendro["ivl"]
+
+    # Create new matrix from return corr matrix with ordered asset indexes
     quasi_diag_matrix = corr_matrix.loc[:, idx]
     quasi_diag_matrix = quasi_diag_matrix.loc[idx, :]
 
     sns.heatmap(quasi_diag_matrix)
+    plt.figure()
     plt.show()
-    pass
-
-
-
-
+    # TODO: ffs check if corr or cov should be used
+    return idx
 
     # #Creates a tuple with asset ticker, order of assets in dendogram, and cluster family
     # dendogram_tuple = list(zip(dend["ivl"], dend["leaves"], dend["leaves_color_list"]))
