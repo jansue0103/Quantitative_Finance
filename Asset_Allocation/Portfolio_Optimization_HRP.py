@@ -5,12 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.spatial.distance import pdist, squareform
-from sklearn.decomposition import PCA
 from misc_functions import impute_nan_values
-from itertools import groupby
 
 
-def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:  # TODO: define output type
+def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
     data_raw = yf.download(assets, start=start, end=end)["Adj Close"]
 
     data_imputed = data_raw.apply(impute_nan_values)
@@ -29,14 +27,15 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:  # TOD
     full_distance = squareform(pairwise_distance)
 
     # TODO: Check with pairwise and full distance differences
-    # TODO: Test with new asset set with multiple goups very similar assets with a group but dissimilar groups, eg. 5 bonds, 5 stocks, 5 commidites, 5 foreign etfs
 
     # Creating clusters from distance matrix
     clusters = linkage(y=full_distance, method=linkage_method, metric="euclidean")
 
-    # Creating dendrogram from clusters
+    # Plotting dendrogram
+    plt.figure(figsize=(20, 15))
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)  # TODO: Fix xlabel font size
     dendro = dendrogram(Z=clusters, labels=data_log_returns.columns)
-    plt.figure()
 
     # Get reordered asset indexes
     idx = dendro["ivl"]
@@ -45,8 +44,18 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:  # TOD
     quasi_diag_matrix = corr_matrix.loc[:, idx]
     quasi_diag_matrix = quasi_diag_matrix.loc[idx, :]
 
-    sns.heatmap(quasi_diag_matrix)
-    plt.figure()
+    # Plotting heatmap
+    plt.figure(figsize=(20, 15))
+    plt.title("Quasi-diagonalized correlation matrix", fontsize=35)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+
+    ax = sns.heatmap(quasi_diag_matrix)
+
+    plt.xlabel("Assets", fontsize=20)
+    plt.ylabel("Assets", fontsize=20)
+    ax.collections[0].colorbar.ax.tick_params(labelsize=20)
+
     plt.show()
     # TODO: ffs check if corr or cov should be used
     return idx
