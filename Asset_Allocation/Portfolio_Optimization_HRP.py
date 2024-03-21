@@ -17,19 +17,17 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
     data_log_returns = pd.DataFrame(np.log(1 + data_imputed.pct_change())[1:])
 
     corr_matrix = data_log_returns.corr()
+    # TODO: Determine method to estmate covariance matrix
     cov_matrix = data_log_returns.cov()
     # Transform correlation matrix into correlation distance matrix
     # Distance formula used in "BUILDING DIVERSIFIED PORTFOLIOS THAT OUTPERFORM OUT-OF-SAMPLE" by Marcos Lopez de Prado (2016)
     distance_matrix = corr_matrix.apply(lambda x: np.sqrt(0.5 * (1 - x)))
 
-    # Calculate condensed pairwise distance matrix
+    # Calculating condensed pairwise distance matrix
     pairwise_distance = pdist(distance_matrix, metric="euclidean")
-    full_distance = squareform(pairwise_distance)
-
-    # TODO: Check with pairwise and full distance differences
 
     # Creating clusters from distance matrix
-    clusters = linkage(y=full_distance, method=linkage_method, metric="euclidean")
+    clusters = linkage(y=pairwise_distance, method=linkage_method, metric="euclidean")
 
     # Plotting dendrogram
     plt.figure(figsize=(20, 15))
@@ -41,12 +39,12 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
     idx = dendro["ivl"]
 
     # Create new matrix from return corr matrix with ordered asset indexes
-    quasi_diag_matrix = corr_matrix.loc[:, idx]
+    quasi_diag_matrix = corr_matrix.loc[:, idx]  # TODO: Lopez says both reordered cov matrix and corr matrix????
     quasi_diag_matrix = quasi_diag_matrix.loc[idx, :]
 
     # Plotting heatmap
     plt.figure(figsize=(20, 15))
-    plt.title("Quasi-diagonalized correlation matrix", fontsize=35)
+    plt.title("Quasi-diagonalized covariance matrix", fontsize=35)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
 
@@ -57,7 +55,6 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
     ax.collections[0].colorbar.ax.tick_params(labelsize=20)
 
     plt.show()
-    # TODO: ffs check if corr or cov should be used
     return idx
 
     # #Creates a tuple with asset ticker, order of assets in dendogram, and cluster family

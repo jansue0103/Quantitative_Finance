@@ -16,7 +16,7 @@ if __name__ == '__main__':
     start = "2015-03-16"
     end = "2024-03-16"
     
-    data = hrp(assets3, start, end, "complete")
+    data = hrp(assets2, start, end, "complete")
     #result_mc = portfolio_simulation(300, 0.0, assets, start=start, end=end)
     #result_opt = portfolio_optimization(assets, start, end, risk_free_rate=0.0)
     
