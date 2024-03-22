@@ -18,7 +18,7 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
 
     corr_matrix = data_log_returns.corr()
     # TODO: Determine method to estmate covariance matrix
-    cov_matrix = data_log_returns.cov()
+    cov_matrix = data_log_returns.cov()  # TODO: Why are the variances so low?
     # Transform correlation matrix into correlation distance matrix
     # Distance formula used in "BUILDING DIVERSIFIED PORTFOLIOS THAT OUTPERFORM OUT-OF-SAMPLE" by Marcos Lopez de Prado (2016)
     distance_matrix = corr_matrix.apply(lambda x: np.sqrt(0.5 * (1 - x)))
@@ -30,7 +30,7 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
     clusters = linkage(y=pairwise_distance, method=linkage_method, metric="euclidean")
 
     # Plotting dendrogram
-    plt.figure(figsize=(20, 15))
+    # plt.figure(figsize=(20, 15))
     plt.yticks(fontsize=15)
     plt.xticks(fontsize=15)  # TODO: Fix xlabel font size
     dendro = dendrogram(Z=clusters, labels=data_log_returns.columns)
@@ -39,21 +39,39 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
     idx = dendro["ivl"]
 
     # Create new matrix from return corr matrix with ordered asset indexes
-    quasi_diag_matrix = corr_matrix.loc[:, idx]  # TODO: Lopez says both reordered cov matrix and corr matrix????
+    quasi_diag_matrix = cov_matrix.loc[:, idx]  # TODO: Lopez says both reordered cov matrix and corr matrix????
     quasi_diag_matrix = quasi_diag_matrix.loc[idx, :]
 
     # Plotting heatmap
-    plt.figure(figsize=(20, 15))
-    plt.title("Quasi-diagonalized covariance matrix", fontsize=35)
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
+    # plt.figure(figsize=(20, 15))
+    # plt.title("Quasi-diagonalized correlation matrix", fontsize=35)
+    # plt.xticks(fontsize=20)
+    # plt.yticks(fontsize=20)
+    #
+    # ax = sns.heatmap(quasi_diag_matrix)
+    #
+    # plt.xlabel("Assets", fontsize=20)
+    # plt.ylabel("Assets", fontsize=20)
+    # ax.collections[0].colorbar.ax.tick_params(labelsize=20)
 
-    ax = sns.heatmap(quasi_diag_matrix)
+    weights = []
 
-    plt.xlabel("Assets", fontsize=20)
-    plt.ylabel("Assets", fontsize=20)
-    ax.collections[0].colorbar.ax.tick_params(labelsize=20)
+    def getVar(asset):
+        return quasi_diag_matrix.loc[asset, asset]
 
+    def rec_bisection(items: list):
+        while len(weights) < len(idx):
+            if len(items) > 2:
+                mid = (len(items)) // 2
+                rec_bisection(items[:mid])
+                rec_bisection(items[mid:])
+            else:
+                var1 = quasi_diag_matrix.loc[items[0], items[0]]
+                var2 = quasi_diag_matrix.loc[items[1], items[1]]
+                weights.append(var1)
+        pass
+    rec_bisection(idx)
+    print(weights)
     plt.show()
     return idx
 
