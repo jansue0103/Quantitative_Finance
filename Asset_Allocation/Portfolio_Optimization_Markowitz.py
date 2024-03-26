@@ -3,7 +3,7 @@ import numpy as np
 import scipy.optimize as optimize
 import pandas as pd
 
-def portfolio_optimization(assets: pd.DataFrame, start=str, end=str, risk_free_rate=float):
+def portfolio_optimization(assets: list, start=str, end=str, risk_free_rate=float):
     
     data = yf.download(assets, start=start, end=end, interval="1d")["Adj Close"]
     log_return = np.log(1 + data.pct_change())[1:]
@@ -32,8 +32,8 @@ def portfolio_optimization(assets: pd.DataFrame, start=str, end=str, risk_free_r
     # Equality constraint, all weights sum up to 100%
     contraints = ({"type": "eq", "fun": lambda x: np.sum(x) - 1}) 
 
-    opt_sharpe = optimize.minimize(minimize_sharpe, x0=initializer_equal, method="SLSQP", bounds=bounds, constraints=contraints)
-    opt_vol = optimize.minimize(minimize_volatility, x0=initializer_equal, method="SLSQP", bounds=bounds, constraints=contraints)
+    opt_sharpe = optimize.minimize(minimize_sharpe, x0=np.array(initializer_equal), method="SLSQP", bounds=bounds, constraints=contraints)
+    opt_vol = optimize.minimize(minimize_volatility, x0=np.array(initializer_equal), method="SLSQP", bounds=bounds, constraints=contraints)
 
     result_sharpe = portfolio_stats(opt_sharpe.x, risk_free_rate)
     result_vol = portfolio_stats(opt_vol.x, risk_free_rate)

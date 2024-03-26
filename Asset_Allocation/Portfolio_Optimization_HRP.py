@@ -31,8 +31,8 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
 
     # Plotting dendrogram
     # plt.figure(figsize=(20, 15))
-    plt.yticks(fontsize=15)
-    plt.xticks(fontsize=15)  # TODO: Fix xlabel font size
+    plt.yticks(fontsize=10)
+    plt.xticks(fontsize=10)  # TODO: Fix xlabel font size
     dendro = dendrogram(Z=clusters, labels=data_log_returns.columns)
 
     # Get reordered asset indexes
@@ -43,35 +43,51 @@ def hrp(assets: list, start: str, end: str, linkage_method: str) -> list:
     quasi_diag_matrix = quasi_diag_matrix.loc[idx, :]
 
     # Plotting heatmap
-    # plt.figure(figsize=(20, 15))
-    # plt.title("Quasi-diagonalized correlation matrix", fontsize=35)
-    # plt.xticks(fontsize=20)
-    # plt.yticks(fontsize=20)
-    #
-    # ax = sns.heatmap(quasi_diag_matrix)
-    #
-    # plt.xlabel("Assets", fontsize=20)
-    # plt.ylabel("Assets", fontsize=20)
-    # ax.collections[0].colorbar.ax.tick_params(labelsize=20)
+    plt.figure(figsize=(20, 15))
+    plt.title("Quasi-diagonalized correlation matrix", fontsize=35)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+
+    ax = sns.heatmap(quasi_diag_matrix)
+
+    plt.xlabel("Assets", fontsize=20)
+    plt.ylabel("Assets", fontsize=20)
+    ax.collections[0].colorbar.ax.tick_params(labelsize=20)
 
     weights = []
 
-    def getVar(asset):
-        return quasi_diag_matrix.loc[asset, asset]
+    def getClusterVar(cov, asset):
+        return cov.loc[asset, asset]
 
     def rec_bisection(items: list):
+        print(items, "\n")
+        mid = (len(items)) // 2
         while len(weights) < len(idx):
             if len(items) > 2:
-                mid = (len(items)) // 2
                 rec_bisection(items[:mid])
                 rec_bisection(items[mid:])
             else:
                 var1 = quasi_diag_matrix.loc[items[0], items[0]]
                 var2 = quasi_diag_matrix.loc[items[1], items[1]]
                 weights.append(var1)
+                weights.append(var2)
+                break
         pass
-    rec_bisection(idx)
-    print(weights)
+
+    asset_clusters = []
+    def split_list(lst):
+        #print(lst)
+        if len(lst) <= 2:
+            asset_clusters.append(lst)
+            return lst
+        mid = len(lst) // 2
+        left_half = split_list(lst[:mid])
+        right_half = split_list(lst[mid:])
+        #TODO: Review if the assets are just split into pairs or into pairs based on the HCA clusters
+    split_list(idx)
+    print(asset_clusters)
+    #rec_bisection(idx)
+    #print(weights)
     plt.show()
     return idx
 

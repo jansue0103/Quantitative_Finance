@@ -18,7 +18,7 @@ if __name__ == '__main__':
     
     data = hrp(assets2, start, end, "complete")
     #result_mc = portfolio_simulation(300, 0.0, assets, start=start, end=end)
-    #result_opt = portfolio_optimization(assets, start, end, risk_free_rate=0.0)
+    #result_opt = portfolio_optimization(assets=assets, start=start, end=end, risk_free_rate=0.0)
     
  
     
