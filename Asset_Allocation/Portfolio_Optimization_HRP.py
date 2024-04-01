@@ -15,13 +15,15 @@ def hrp(tickers: list, start: str, end: str, linkage_method: str) -> list:
     data_log_returns = pd.DataFrame(np.log(1 + data.pct_change())[1:])
 
     corr_matrix = data_log_returns.corr()
-    cov_matrix = data_log_returns.cov()  # TODO: Determine method to estimate covariance matrix
 
     # Transform correlation matrix into correlation distance matrix,Distance formula used Lopez de Prado (2016)
     distance_matrix = corr_matrix.apply(lambda x: np.sqrt(0.5 * (1 - x)))
 
     # Calculating condensed pairwise distance matrix
     pairwise_distance = pdist(distance_matrix, metric="euclidean")
+
+    # Create the covariance matrix based on the new distance matrix
+    cov_matrix = distance_matrix.cov()
 
     # Creating clusters from distance matrix
     clusters = linkage(y=pairwise_distance, method=linkage_method, metric="euclidean")
@@ -85,6 +87,10 @@ def hrp(tickers: list, start: str, end: str, linkage_method: str) -> list:
         return
 
     rec_bisection(asset_weights) #TODO: Evaluate and confirm correct asset weights
+    summation = 0.0
+    for weight in asset_weights:
+        summation += weight[1]
+    print(summation)
     plt.show()
 
     return asset_weights
